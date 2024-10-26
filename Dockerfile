@@ -1,32 +1,29 @@
-# Etapa de construção
+# Usar a imagem base do Go
 FROM golang:1.22-alpine AS builder
 
 # Definir o diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copiar os arquivos go.mod e go.sum
-COPY go.mod go.sum ./
-
-# Baixar as dependências
-RUN go mod tidy
-
-# Copiar o restante dos arquivos da aplicação
+# Copiar o código do projeto para dentro do container
 COPY . .
 
-# Compilar a aplicação
-RUN go build -o main .
+# Inicializar o módulo Go (gera o go.mod e go.sum)
+RUN go mod init myapp && go mod tidy
 
-# Etapa de execução
+# Compilar a aplicação
+RUN go build -o /app/myapp .
+
+# Segunda fase: imagem final com o binário
 FROM alpine:latest
 
-# Definir o diretório de trabalho dentro do container
+# Definir o diretório de trabalho no novo container
 WORKDIR /root/
 
-# Copiar o binário compilado da etapa de construção
-COPY --from=builder /app/main .
+# Copiar o binário da fase de build
+COPY --from=builder /app/myapp .
 
-# Expor a porta em que a aplicação será executada
+# Expor a porta que a aplicação utiliza (se necessário)
 EXPOSE 8080
 
-# Comando para executar a aplicação
-CMD ["./main"]
+# Executar a aplicação
+CMD ["./myapp"]
