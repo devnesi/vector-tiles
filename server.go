@@ -67,7 +67,8 @@ func envelopeToSQL(env Envelope, pk int) string {
         mvtgeom AS (
             SELECT ST_AsMVTGeom(ST_Transform(t.%s, 3857), bounds.b2d) AS geom,
 			t.id_geometry,
-			t.layer_id as id_layer
+			t.layer_id as id_layer,
+			ST_AsText(ST_Transform(t.geom, 3857)) as geomWkt
             FROM %s t, bounds
             WHERE ST_Intersects(t.%s, ST_Transform(bounds.geom, 4326))
             AND layer_id = %d
